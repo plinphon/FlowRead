@@ -18,9 +18,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'username', 
         'email',
-        'password',
+        'password_hash',
     ];
 
     /**
@@ -29,7 +29,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
+        'password_hash',
         'remember_token',
     ];
 
@@ -45,4 +45,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function getAuthPassword()
+    {
+        return $this->password_hash;
+    }
+
+    public function books()
+    {
+        return $this->hasMany(Book::class);
+    }
+
 }
