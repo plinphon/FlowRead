@@ -1,7 +1,32 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\UserController;
+use App\Http\Controllers\BookController;
 
-Route::get('/', function () {
-    return view('welcome');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [UserController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [UserController::class, 'login']);
+
+    Route::get('/register', [UserController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [UserController::class, 'register']);
+});
+
+Route::post('/logout', [UserController::class, 'logout'])->middleware('auth')->name('logout');
+
+Route::post('/update-username', [UserController::class, 'update_username'])
+    ->middleware('auth')
+    ->name('update.username');
+
+
+Route::middleware('auth')->group(function () {
+
+    Route::get('/', [BookController::class, 'indexUI'])->name('books.list');
+    Route::get('/books/create', [BookController::class, 'createUI'])->name('books.createUI'); 
+
+    Route::get('/books/{id}', [BookController::class, 'show']);
+    Route::post('/books', [BookController::class, 'create'])->name('books.create');
+    Route::put('/books/{id}', [BookController::class, 'update']);
+    Route::delete('/books/{id}', [BookController::class, 'destroy']);
 });

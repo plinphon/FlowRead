@@ -1,0 +1,93 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
+class UserController extends Controller
+{
+    /**
+     * Show login form
+     */
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    } 
+
+    public function login(Request $request)
+    {
+        $credential = $request->only('email', 'password');
+
+        if (Auth::attempt($credential, $request->filled('remember'))) {
+            $request->session()->regenerate();
+            return redirect('/')
+                ->with('success', 'You have been logged in successfully.');
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
+
+     /**
+     * Show login form
+     */
+    public function showRegisterForm()
+    {
+        return view('auth.register');
+    } 
+
+    /**
+     * Handle user registration
+     */
+    public function register(Request $request)
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+        
+        $user = User::create([
+            'username' => $validated['username'], 
+            'email' => $validated['email'],
+            'password_hash' => Hash::make($validated['password']),
+        ]);
+        
+        Auth::login($user);
+        
+        return redirect('/')
+            ->with('success', 'Account created successfully.');
+    }
+    
+    /**
+     * Handle logout request
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
+        return redirect('/')
+            ->with('success', 'You have been logged out successfully.');
+    }
+
+    public function update_username(Request $request)
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|max:255',
+        ]);
+        $user = Auth::user();
+        $user->username = $validated['username'];
+        $user->save();    
+
+        return redirect('home')
+            ->with('success', 'Updated username successfully.');
+    }
+}
