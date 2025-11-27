@@ -1,21 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Reservation - FlowRead</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #fffaf5;
-        }
-    </style>
-</head>
-<body>
+@extends('layouts.app')
 
+@section('title', 'FlowRead - Add Reservation')
+
+@section('content')
 <div class="container mx-auto mt-8 px-4 max-w-2xl pb-12">
     <!-- Header -->
     <div class="mb-8 pb-6 border-b-2 border-orange-200">
@@ -27,20 +14,11 @@
     <div class="bg-white border border-gray-200 rounded-xl p-6">
         @if($errors->any())
             <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <div class="flex">
-                    <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                    <div class="ml-3">
-                        <ul class="list-disc list-inside text-red-700 text-sm">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
+                <ul class="list-disc list-inside text-red-700 text-sm">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
@@ -76,6 +54,4 @@
         </a>
     </div>
 </div>
-
-</body>
-</html>
+@endsection

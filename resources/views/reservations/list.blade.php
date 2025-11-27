@@ -1,19 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservations - FlowRead</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #fffaf5;
-        }
-    </style>
-</head>
-<body>
+@extends('layouts.app')
 
+@section('title', 'FlowRead - Book List')
+
+@section('content')
 <div class="container mx-auto mt-8 px-4 pb-12 max-w-7xl">
     <!-- Header -->
     <div class="flex justify-between items-center mb-8 pb-6 border-b-2 border-orange-200">
@@ -22,7 +11,6 @@
             <p class="text-gray-600 text-sm">{{ $book->title }}</p>
         </div>
 
-        <!-- Only show Add Reservation if current user is NOT the owner -->
         @if(auth()->id() !== $book->owner_id)
             <a href="{{ route('reservations.createUI', $book->id) }}"
                class="bg-orange-500 text-white px-6 py-2.5 rounded-lg hover:bg-orange-600 transition font-medium">
@@ -54,17 +42,13 @@
                     <tbody class="bg-white divide-y divide-gray-100">
                         @foreach ($reservations as $reservation)
                             @php
-                                // Highlight reading or next pending
                                 $rowClass = match($reservation->status) {
                                     \App\Models\Reservation::STATUS_READING => 'bg-green-50',
                                     \App\Models\Reservation::STATUS_PENDING => ($nextPending && $reservation->id === $nextPending->id) ? 'bg-yellow-50' : '',
                                     default => ''
                                 };
-
-                                // Get allowed actions from controller
                                 $allowed = $allowedActions[$reservation->id] ?? [];
                             @endphp
-
                             <tr class="hover:bg-gray-50 transition {{ $rowClass }}">
                                 <td class="px-4 py-4 text-sm text-gray-900">{{ $reservation->id }}</td>
                                 <td class="px-4 py-4 text-sm font-medium text-gray-900">{{ $reservation->user->username ?? 'User' }}</td>
@@ -115,7 +99,6 @@
         @endif
     </div>
 
-    <!-- Back Link -->
     <div class="mt-6">
         <a href="{{ route('books.list') }}" class="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium transition text-sm">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,6 +108,4 @@
         </a>
     </div>
 </div>
-
-</body>
-</html>
+@endsection
