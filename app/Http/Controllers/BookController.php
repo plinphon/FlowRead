@@ -57,7 +57,7 @@ class BookController extends Controller
     public function editUI($id)
     {
         $book = Book::findOrFail($id);
-        
+
         if ($book->owner_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
@@ -69,9 +69,7 @@ class BookController extends Controller
     {
         $book = Book::findOrFail($id);
 
-        if ($book->owner_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorize('update', $book);
 
         $validated = $request->validate([
             'title'     => 'sometimes|string|max:255',
@@ -92,9 +90,7 @@ class BookController extends Controller
     {
         $book = Book::findOrFail($id);
 
-        if ($book->owner_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorize('delete', $book);
 
         $book->delete();
 

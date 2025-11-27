@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reservations - FlowRead</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -50,56 +48,56 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-100">
-                    @foreach ($reservations as $reservation)
-                        @php
-                            $rowClass = '';
-                            if ($reservation->status === \App\Models\Reservation::STATUS_READING) {
-                                $rowClass = 'bg-green-50';
-                            } elseif ($nextPending && $reservation->id === $nextPending->id) {
-                                $rowClass = 'bg-yellow-50';
-                            }
-                        @endphp
+                        @foreach ($reservations as $reservation)
+                            @php
+                                // Highlight reading or next pending
+                                $rowClass = match($reservation->status) {
+                                    \App\Models\Reservation::STATUS_READING => 'bg-green-50',
+                                    \App\Models\Reservation::STATUS_PENDING => ($nextPending && $reservation->id === $nextPending->id) ? 'bg-yellow-50' : '',
+                                    default => ''
+                                };
+                            @endphp
 
-                        <tr class="hover:bg-gray-50 transition {{ $rowClass }}">
-                            <td class="px-4 py-4 text-sm text-gray-900">{{ $reservation->id }}</td>
-                            <td class="px-4 py-4 text-sm font-medium text-gray-900">{{ $reservation->user->username ?? 'User' }}</td>
-                            <td class="px-4 py-4 text-sm text-gray-600">{{ $reservation->position }}</td>
-                            <td class="px-4 py-4">
-                                <span class="px-2.5 py-1 rounded-full text-xs font-medium
-                                    @if($reservation->status === \App\Models\Reservation::STATUS_READING)
-                                        bg-green-100 text-green-700
-                                    @elseif($reservation->status === 'pending')
-                                        bg-yellow-100 text-yellow-700
+                            <tr class="hover:bg-gray-50 transition {{ $rowClass }}">
+                                <td class="px-4 py-4 text-sm text-gray-900">{{ $reservation->id }}</td>
+                                <td class="px-4 py-4 text-sm font-medium text-gray-900">{{ $reservation->user->username ?? 'User' }}</td>
+                                <td class="px-4 py-4 text-sm text-gray-600">{{ $reservation->position }}</td>
+                                <td class="px-4 py-4">
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                                        @if($reservation->status === \App\Models\Reservation::STATUS_READING)
+                                            bg-green-100 text-green-700
+                                        @elseif($reservation->status === \App\Models\Reservation::STATUS_PENDING)
+                                            bg-yellow-100 text-yellow-700
+                                        @else
+                                            bg-gray-100 text-gray-700
+                                        @endif
+                                    ">
+                                        {{ ucfirst($reservation->status) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 text-sm text-gray-600">{{ $reservation->created_at->format('M d, Y H:i') }}</td>
+                                <td class="px-4 py-4">
+                                    @if(!empty($reservation->allowedStatuses))
+                                        <form action="{{ route('reservations.updateStatus', $reservation->id) }}" method="POST" class="flex gap-2 items-center">
+                                            @csrf
+                                            @method('PUT')
+                                            <select name="status" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                                @foreach($reservation->allowedStatuses as $status)
+                                                    <option value="{{ $status }}" {{ $reservation->status === $status ? 'selected' : '' }}>
+                                                        {{ ucfirst($status) }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <button type="submit" class="bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition text-sm font-medium">
+                                                Update
+                                            </button>
+                                        </form>
                                     @else
-                                        bg-gray-100 text-gray-700
+                                        <span class="text-gray-400 italic text-sm">No actions</span>
                                     @endif
-                                ">
-                                    {{ ucfirst($reservation->status) }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-4 text-sm text-gray-600">{{ $reservation->created_at->format('M d, Y H:i') }}</td>
-                            <td class="px-4 py-4">
-                                @if(!empty($reservation->allowedStatuses))
-                                    <form action="{{ route('reservations.updateStatus', $reservation->id) }}" method="POST" class="flex gap-2 items-center">
-                                        @csrf
-                                        @method('PUT')
-                                        <select name="status" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
-                                            @foreach($reservation->allowedStatuses as $status)
-                                                <option value="{{ $status }}" {{ $reservation->status === $status ? 'selected' : '' }}>
-                                                    {{ ucfirst($status) }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <button type="submit" class="bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition text-sm font-medium">
-                                            Update
-                                        </button>
-                                    </form>
-                                @else
-                                    <span class="text-gray-400 italic text-sm">No actions</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforeach
+                                </td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>

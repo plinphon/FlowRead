@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Reservation;
 use App\Models\Book;
+use App\Services\ReservationService;
 use Illuminate\Http\Request;
 
 class ReservationController extends Controller
 {
-
     public function list(string $book_id)
     {
         $book = Book::findOrFail($book_id);
@@ -20,40 +20,21 @@ class ReservationController extends Controller
         $userId = auth()->id();
         $bookOwnerId = $book->owner_id;
 
-        //next pending reservation
         $nextPending = $reservations->where('status', Reservation::STATUS_PENDING)->sortBy('position')->first();
+        $currentReading = $reservations->where('status', Reservation::STATUS_READING)->first();
 
-        $reservations->transform(function($reservation) use ($userId, $bookOwnerId, $nextPending) {
-            $allowed = [];
+        $service = new \App\Services\ReservationService();
 
-            //cancel allowed for user or owner if not completed/canceled
-            if (!in_array($reservation->status, [Reservation::STATUS_COMPLETED, Reservation::STATUS_CANCELED])) {
-                if ($userId === $reservation->user_id || $userId === $bookOwnerId) {
-                    $allowed[] = Reservation::STATUS_CANCELED;
-                }
-            }
+        $reservations = $service->attachAllowedActions($reservations, [
+            'user_id'     => $userId,
+            'owner_id'    => $bookOwnerId,
+            'next_pending'=> $nextPending,
+            'has_reading' => $currentReading !== null,
+        ]);
 
-            //owner can move next pending to reading
-            if ($userId === $bookOwnerId
-                && $reservation->status === Reservation::STATUS_PENDING
-                && $reservation->id === optional($nextPending)->id
-            ) {
-                $allowed[] = Reservation::STATUS_READING;
-            }
-
-            //owner can mark reading reservation as completed
-            if ($userId === $bookOwnerId && $reservation->status === Reservation::STATUS_READING) {
-                $allowed[] = Reservation::STATUS_COMPLETED;
-            }
-
-            $reservation->allowedStatuses = $allowed;
-            return $reservation;
-        });
 
         return view('reservations.list', compact('book', 'reservations', 'nextPending'));
     }
-
-
 
     /**
      * Show create reservation form for a book

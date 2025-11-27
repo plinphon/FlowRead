@@ -24,38 +24,6 @@ class Reservation extends Model
     public const STATUS_READING = 'reading';
     public const STATUS_COMPLETED = 'completed';
 
-    public function getAllowedStatusesForUser($userId)
-    {
-        $allowed = [];
-
-        $bookOwnerId = $this->book->owner_id;
-
-        // Cancel: only pending
-        if ($this->status === self::STATUS_PENDING) {
-            $allowed[] = self::STATUS_CANCELED;
-        }
-
-        // Reading: only book owner and next pending
-        $nextPending = self::where('book_id', $this->book_id)
-            ->where('status', self::STATUS_PENDING)
-            ->orderBy('position')
-            ->first();
-
-        if ($userId === $bookOwnerId 
-            && $this->status === self::STATUS_PENDING 
-            && $nextPending && $this->id === $nextPending->id
-        ) {
-            $allowed[] = self::STATUS_READING;
-        }
-
-        // Completed: only book owner and currently reading
-        if ($userId === $bookOwnerId && $this->status === self::STATUS_READING) {
-            $allowed[] = self::STATUS_COMPLETED;
-        }
-
-        return $allowed;
-    }
-
     public function book()
     {
         return $this->belongsTo(Book::class);

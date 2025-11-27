@@ -62,34 +62,24 @@
             </div>
             @endif
 
-            <!-- Status Badge -->
-            <div class="mb-4">
-                @if(isset($book->current_reader))
-                    <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                        <p class="text-xs text-amber-700">Currently reading: <span class="font-semibold">{{ $book->current_reader->username }}</span></p>
-                    </div>
-                @else
-                    <div class="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                        <p class="text-xs text-green-700 font-medium">Available</p>
-                    </div>
-                @endif
-            </div>
-
             <!-- Actions -->
             <div class="flex gap-2">
+                <!-- Reservations is visible to everyone -->
                 <a href="{{ route('reservations.listUI', $book->id) }}"
-                   class="flex-1 bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition text-center text-sm font-medium">
+                    class="flex-1 bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition text-center text-sm font-medium">
                     Reservations
                 </a>
-                
+
+                @can('update', $book)
                 <a href="{{ route('books.editUI', $book->id) }}"
-                   class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
+                    class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
                     Edit
                 </a>
+                @endcan
 
+                @can('delete', $book)
                 <form action="{{ route('books.delete', $book->id) }}" method="POST"
-                      onsubmit="return confirm('Remove this book?')"
-                      class="inline">
+                        onsubmit="return confirm('Remove this book?')" class="inline">
                     @csrf
                     @method('DELETE')
                     <button type="submit"
@@ -97,7 +87,9 @@
                         Delete
                     </button>
                 </form>
+                @endcan
             </div>
+
         </div>
         @endforeach
     </div>
