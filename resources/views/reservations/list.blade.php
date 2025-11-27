@@ -1,10 +1,10 @@
+<!-- Place this inside resources/views/reservations/list.blade.php -->
 @extends('layouts.app')
 
 @section('title', 'FlowRead - Book List')
 
 @section('content')
 <div class="container mx-auto mt-8 px-4 pb-12 max-w-7xl">
-    <!-- Header -->
     <div class="flex justify-between items-center mb-8 pb-6 border-b-2 border-orange-200">
         <div>
             <h1 class="text-3xl font-bold text-gray-900 mb-1">Reservations</h1>
@@ -19,7 +19,6 @@
         @endif
     </div>
 
-    <!-- Reservations Table -->
     <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
         @if($reservations->isEmpty())
             <div class="text-center py-12">
@@ -31,66 +30,96 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">ID</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">User</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Position</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Booked At</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Position</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">User</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Booked At</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Review</th>
                         </tr>
                     </thead>
+
                     <tbody class="bg-white divide-y divide-gray-100">
                         @foreach ($reservations as $reservation)
                             @php
-                                $rowClass = match($reservation->status) {
-                                    \App\Models\Reservation::STATUS_READING => 'bg-green-50',
-                                    \App\Models\Reservation::STATUS_PENDING => ($nextPending && $reservation->id === $nextPending->id) ? 'bg-yellow-50' : '',
-                                    default => ''
-                                };
+                                $rowClass = '';
+                                if ($reservation->status === \App\Models\Reservation::STATUS_READING) $rowClass = 'bg-green-50';
+                                if ($reservation->status === \App\Models\Reservation::STATUS_PENDING && $nextPending && $reservation->id === $nextPending->id) $rowClass = 'bg-yellow-50';
+                                if ($reservation->user_id === auth()->id()) $rowClass .= ' bg-blue-50';
+
                                 $allowed = $allowedActions[$reservation->id] ?? [];
+                                $review = $reviews->firstWhere('reservation_id', $reservation->id);
                             @endphp
+
                             <tr class="hover:bg-gray-50 transition {{ $rowClass }}">
-                                <td class="px-4 py-4 text-sm text-gray-900">{{ $reservation->id }}</td>
-                                <td class="px-4 py-4 text-sm font-medium text-gray-900">{{ $reservation->user->username ?? 'User' }}</td>
                                 <td class="px-4 py-4 text-sm text-gray-600">{{ $reservation->position }}</td>
+                                <td class="px-4 py-4 text-sm font-medium text-gray-900">{{ $reservation->user->username ?? 'User' }}</td>
                                 <td class="px-4 py-4">
                                     <span class="px-2.5 py-1 rounded-full text-xs font-medium
-                                        @if($reservation->status === \App\Models\Reservation::STATUS_READING)
-                                            bg-green-100 text-green-700
-                                        @elseif($reservation->status === \App\Models\Reservation::STATUS_PENDING)
-                                            bg-yellow-100 text-yellow-700
-                                        @else
-                                            bg-gray-100 text-gray-700
-                                        @endif
-                                    ">
+                                        @if($reservation->status === \App\Models\Reservation::STATUS_READING) bg-green-100 text-green-700
+                                        @elseif($reservation->status === \App\Models\Reservation::STATUS_PENDING) bg-yellow-100 text-yellow-700
+                                        @else bg-gray-100 text-gray-700 @endif">
                                         {{ ucfirst($reservation->status) }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-4 text-sm text-gray-600">{{ $reservation->created_at->format('M d, Y H:i') }}</td>
+
                                 <td class="px-4 py-4">
                                     @if(!empty($allowed))
                                         <form action="{{ route('reservations.updateStatus', $reservation->id) }}" method="POST" class="flex gap-2 items-center">
                                             @csrf
                                             @method('PUT')
-                                            <select name="status" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                            <select name="status" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
                                                 @foreach($allowed as $status)
                                                     <option value="{{ $status }}" {{ $reservation->status === $status ? 'selected' : '' }}>
-                                                        @if($status === \App\Models\Reservation::STATUS_CANCELED) Cancel
-                                                        @elseif($status === \App\Models\Reservation::STATUS_READING) Start Reading
-                                                        @elseif($status === \App\Models\Reservation::STATUS_COMPLETED) Mark Completed
-                                                        @else {{ ucfirst($status) }}
-                                                        @endif
+                                                        {{ ucfirst($status) }}
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            <button type="submit" class="bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition text-sm font-medium">
-                                                Update
-                                            </button>
+                                            <button type="submit" class="bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 text-sm font-medium">Update</button>
                                         </form>
                                     @else
                                         <span class="text-gray-400 italic text-sm">No actions</span>
                                     @endif
                                 </td>
+
+                        <td class="px-4 py-4 text-sm text-gray-600">
+
+                            @if($reservation->status === \App\Models\Reservation::STATUS_COMPLETED )
+
+                                @php
+                                    $review = $reviews->get($reservation->id);
+                                @endphp
+
+                                @if($review)
+                                    <!-- Show review inline -->
+                                    <div class="space-y-1">
+                                        <div class="flex items-center">
+                                            @for($i = 1; $i <= $review->rating; $i++)
+                                                <span class="text-lg {{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-300' }}">⭐</span>
+                                            @endfor
+                                        </div>
+
+                                        <p class="text-gray-700 text-xs leading-relaxed">
+                                            {{ $review->content }}
+                                        </p>
+
+                                        <p class="text-gray-400 text-[10px]">Reviewed: {{ $review->created_at->format('M d, Y') }}</p>
+                                    </div>
+                                @elseif ($reservation->user_id === auth()->id())
+                                    <!-- Write review button -->
+                                    <a href="{{ route('reviews.create', $reservation->id) }}"
+                                    class="bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 text-xs">
+                                        Write Review
+                                    </a>
+                                @endif
+
+                            @else
+                                <span class="text-gray-400 italic text-xs">-</span>
+                            @endif
+
+                        </td>
+
                             </tr>
                         @endforeach
                     </tbody>
@@ -100,7 +129,7 @@
     </div>
 
     <div class="mt-6">
-        <a href="{{ route('books.list') }}" class="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium transition text-sm">
+        <a href="{{ route('books.list') }}" class="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium text-sm">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>

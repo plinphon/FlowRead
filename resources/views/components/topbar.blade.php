@@ -5,6 +5,13 @@
             <a href="{{ route('books.list') }}" class="flex items-center gap-2">
                 <span class="text-2xl font-bold text-orange-500">FlowRead</span>
             </a>
+            <a href="{{ route('books.userList') }}" class="flex gap-2">
+                <span class="text-l">Your Book</span>
+            </a>
+            <a href="{{ route('books.userReservations') }}" class="flex gap-2">
+                <span class="text-l">Your Reservation</span>
+            </a>
+
 
             <!-- Right Side: Auth Buttons -->
             <div class="flex items-center gap-3">

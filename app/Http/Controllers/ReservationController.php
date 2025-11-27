@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Reservation;
 use App\Models\Book;
 use App\Services\ReservationService;
+use App\Models\Review;
 use Illuminate\Http\Request;
 
 class ReservationController extends Controller
@@ -37,7 +38,11 @@ class ReservationController extends Controller
             );
         }
 
-        return view('reservations.list', compact('book', 'reservations', 'nextPending', 'allowedActions'));
+        $reviews = Review::where('book_id', $book_id)
+            ->get()
+            ->keyBy('reservation_id');
+
+        return view('reservations.list', compact('book', 'reservations', 'nextPending', 'allowedActions', 'reviews'));
     }
 
     /**

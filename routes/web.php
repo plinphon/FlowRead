@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ReviewController;
 
 
 Route::middleware('guest')->group(function () {
@@ -24,6 +25,9 @@ Route::post('/update-username', [UserController::class, 'update_username'])
 Route::middleware('auth')->group(function () {
 
     Route::get('/', [BookController::class, 'indexUI'])->name('books.list');
+    Route::get('/user', [BookController::class, 'userUI'])->name('books.userList');
+    Route::get('/reservations', [BookController::class, 'userReservationUI'])->name('books.userReservations');
+
     Route::get('/books/create', [BookController::class, 'createUI'])->name('books.createUI'); 
     Route::get('/books/{id}/edit', [BookController::class, 'editUI'])->name('books.editUI');
 
@@ -44,4 +48,10 @@ Route::middleware('auth')->group(function () {
 
     Route::put('/reservations/{id}/status', [ReservationController::class, 'updateStatus'])
         ->name('reservations.updateStatus');
+
+    //review
+    Route::get('/books/{book_id}/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+
+    Route::post('/reservations/{reservation}/review', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::get('/reservations/{reservation}/review/create', [ReviewController::class, 'create'])->name('reviews.create');
 });

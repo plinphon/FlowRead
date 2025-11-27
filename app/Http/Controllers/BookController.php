@@ -16,12 +16,28 @@ class BookController extends Controller
         return view('home', compact('books'));
     }
 
+    public function userUI()
+    {
+        $userId = auth()->id();
+        $books = Book::where('owner_id', $userId)->get();
+        return view('home', compact('books'));
+    }
+
+    public function userReservationUI()
+    {
+        $userId = auth()->id();
+
+        $books = Book::whereHas('reservations', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->get();
+
+        return view('home', compact('books'));
+    }
+
     public function createUI()
     {
         return view('books.create');
     }
-
-
 
     /**
      * GET single book by id
