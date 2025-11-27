@@ -1,69 +1,128 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowRead - Book List</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fffaf5;
+        }
+    </style>
+</head>
+<body>
 
-@section('content')
-<div class="container mx-auto mt-10">
-
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">Book List</h1>
-
+<div class="container mx-auto mt-8 px-4 pb-12 max-w-7xl">
+    <!-- Minimal Header -->
+    <div class="flex justify-between items-center mb-12 pb-6 border-b-2 border-orange-200">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-1">FlowRead</h1>
+            <p class="text-gray-600 text-sm">Share books, spark conversations</p>
+        </div>
         <a href="{{ route('books.createUI') }}"
-           class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+           class="bg-orange-500 text-white px-6 py-2.5 rounded-lg hover:bg-orange-600 transition font-medium">
            + Add Book
         </a>
     </div>
 
-    <div class="bg-white shadow rounded-lg p-6">
-        <table class="min-w-full">
-            <thead>
-                <tr class="border-b">
-                    <th class="py-3 text-left">ID</th>
-                    <th class="py-3 text-left">Title</th>
-                    <th class="py-3 text-left">Author</th>
-                    <th class="py-3 text-left">ISBN</th>
-                    <th class="py-3 text-left">Actions</th>
-                </tr>
-            </thead>
+    <!-- Book Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach ($books as $book)
+        <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <!-- Book Title & Author -->
+            <div class="mb-4">
+                <h2 class="text-xl font-bold text-gray-900 mb-1 line-clamp-2">{{ $book->title }}</h2>
+                <p class="text-gray-600 text-sm">{{ $book->author }}</p>
+            </div>
 
-            <tbody>
-                @foreach ($books as $book)
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="py-3">{{ $book->id }}</td>
-                    <td class="py-3">{{ $book->title }}</td>
-                    <td class="py-3">{{ $book->author }}</td>
-                    <td class="py-3">{{ $book->isbn }}</td>
+            <!-- Owner -->
+            <div class="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100">
+                <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-semibold text-sm">
+                    {{ strtoupper(substr($book->user->username ?? 'U', 0, 1)) }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs text-gray-500">Shared by</p>
+                    <p class="text-sm font-medium text-gray-900 truncate">{{ $book->user->username ?? 'Unknown' }}</p>
+                </div>
+                @if(isset($book->reservations_count) && $book->reservations_count > 0)
+                <div class="bg-orange-50 text-orange-600 px-2 py-1 rounded text-xs font-medium">
+                    {{ $book->reservations_count }} waiting
+                </div>
+                @endif
+            </div>
 
-                    <td class="py-3">
-                            <div class="flex gap-2">
-                                <!-- Edit -->
-                                <a href="{{ route('books.editUI', $book->id) }}"
-                                   class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
-                                    Edit
-                                </a>
+            <!-- ISBN (Compact) -->
+            @if($book->isbn)
+            <div class="mb-4">
+                <p class="text-xs text-gray-500">ISBN: <span class="text-gray-700 font-mono">{{ $book->isbn }}</span></p>
+            </div>
+            @endif
 
-                                <!-- Delete -->
-                                <form action="{{ route('books.delete', $book->id) }}" method="POST"
-                                      onsubmit="return confirm('Are you sure?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                            class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
-                                        Delete
-                                    </button>
-                                </form>
-                            </div>
-    
-                            <!-- Non-owner: View reservations button -->
-                            <a href="{{ route('reservations.listUI', $book->id) }}"
-                               class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-                                View Reservations
-                            </a>
-                    </td>
+            <!-- Status Badge -->
+            <div class="mb-4">
+                @if(isset($book->current_reader))
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        <p class="text-xs text-amber-700">Currently reading: <span class="font-semibold">{{ $book->current_reader->username }}</span></p>
+                    </div>
+                @else
+                    <div class="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                        <p class="text-xs text-green-700 font-medium">Available</p>
+                    </div>
+                @endif
+            </div>
 
-                </tr>
-                @endforeach
-            </tbody>
+            <!-- Actions -->
+            <div class="flex gap-2">
+                <a href="{{ route('reservations.listUI', $book->id) }}"
+                   class="flex-1 bg-orange-500 text-white px-3 py-2 rounded-lg hover:bg-orange-600 transition text-center text-sm font-medium">
+                    Reservations
+                </a>
+                
+                <a href="{{ route('books.editUI', $book->id) }}"
+                   class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
+                    Edit
+                </a>
 
-        </table>
+                <form action="{{ route('books.delete', $book->id) }}" method="POST"
+                      onsubmit="return confirm('Remove this book?')"
+                      class="inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit"
+                            class="bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 transition text-sm font-medium">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+        @endforeach
+    </div>
+
+    @if ($books->isEmpty())
+        <div class="text-center mt-20">
+            <div class="inline-block bg-white border-2 border-dashed border-orange-200 rounded-2xl p-12 max-w-md">
+                <div class="text-5xl mb-4">📚</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">No books yet</h3>
+                <p class="text-gray-600 mb-6 text-sm">Start sharing your favorite reads</p>
+                <a href="{{ route('books.createUI') }}"
+                   class="inline-block bg-orange-500 text-white px-6 py-2.5 rounded-lg hover:bg-orange-600 transition font-medium">
+                    Add Your First Book
+                </a>
+            </div>
+        </div>
+    @endif
+</div>
+
+<!-- Minimal Footer -->
+<div class="border-t border-orange-100 mt-12">
+    <div class="container mx-auto px-4 py-6 max-w-7xl">
+        <p class="text-center text-gray-500 text-sm">FlowRead - Keep the conversation flowing 📖</p>
     </div>
 </div>
-@endsection
+
+</body>
+</html>
