@@ -33,7 +33,6 @@
                     <td class="py-3">{{ $book->isbn }}</td>
 
                     <td class="py-3">
-                        @if ($book->owner_id === auth()->id())
                             <div class="flex gap-2">
                                 <!-- Edit -->
                                 <a href="{{ route('books.editUI', $book->id) }}"
@@ -52,13 +51,12 @@
                                     </button>
                                 </form>
                             </div>
-                        @else
+    
                             <!-- Non-owner: View reservations button -->
                             <a href="{{ route('reservations.listUI', $book->id) }}"
                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
                                 View Reservations
                             </a>
-                        @endif
                     </td>
 
                 </tr>

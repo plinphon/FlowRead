@@ -42,6 +42,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/books/{book_id}/reservations', [ReservationController::class, 'store'])
         ->name('reservations.store');
 
-    Route::delete('/reservations/{id}', [ReservationController::class, 'destroy'])
-        ->name('reservations.delete');
+    Route::put('/reservations/{id}/status', [ReservationController::class, 'updateStatus'])
+        ->name('reservations.updateStatus');
 });

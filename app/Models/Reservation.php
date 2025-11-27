@@ -9,28 +9,60 @@ class Reservation extends Model
 {
     use HasFactory;
 
-    /**
-     * @var string
-     */
     protected $table = 'reservations';
 
-    /**
-     * @var array
-     */
     protected $fillable = [
         'book_id',
         'user_id',
         'position',
-        'status'
+        'status',
     ];
+
+    // Allowed status values
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_CANCELED = 'canceled';
+    public const STATUS_READING = 'reading';
+    public const STATUS_COMPLETED = 'completed';
+
+    public function getAllowedStatusesForUser($userId)
+    {
+        $allowed = [];
+
+        $bookOwnerId = $this->book->owner_id;
+
+        // Cancel: only pending
+        if ($this->status === self::STATUS_PENDING) {
+            $allowed[] = self::STATUS_CANCELED;
+        }
+
+        // Reading: only book owner and next pending
+        $nextPending = self::where('book_id', $this->book_id)
+            ->where('status', self::STATUS_PENDING)
+            ->orderBy('position')
+            ->first();
+
+        if ($userId === $bookOwnerId 
+            && $this->status === self::STATUS_PENDING 
+            && $nextPending && $this->id === $nextPending->id
+        ) {
+            $allowed[] = self::STATUS_READING;
+        }
+
+        // Completed: only book owner and currently reading
+        if ($userId === $bookOwnerId && $this->status === self::STATUS_READING) {
+            $allowed[] = self::STATUS_COMPLETED;
+        }
+
+        return $allowed;
+    }
 
     public function book()
     {
-        return $this->belongTo(Book::class);
+        return $this->belongsTo(Book::class);
     }
 
     public function user()
     {
-        return $this->belongTo(User::class);
+        return $this->belongsTo(User::class);
     }
 }

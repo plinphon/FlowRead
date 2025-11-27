@@ -8,19 +8,52 @@ use Illuminate\Http\Request;
 
 class ReservationController extends Controller
 {
-    /**
-     * List all reservations for a book (only for logged-in user if needed)
-     */
+
     public function list(string $book_id)
     {
         $book = Book::findOrFail($book_id);
 
         $reservations = Reservation::where('book_id', $book_id)
-            ->where('user_id', auth()->id()) //only user's reservations
+            ->orderBy('position')
             ->get();
 
-        return view('reservations.list', compact('book', 'reservations'));
+        $userId = auth()->id();
+        $bookOwnerId = $book->owner_id;
+
+        //next pending reservation
+        $nextPending = $reservations->where('status', Reservation::STATUS_PENDING)->sortBy('position')->first();
+
+        $reservations->transform(function($reservation) use ($userId, $bookOwnerId, $nextPending) {
+            $allowed = [];
+
+            //cancel allowed for user or owner if not completed/canceled
+            if (!in_array($reservation->status, [Reservation::STATUS_COMPLETED, Reservation::STATUS_CANCELED])) {
+                if ($userId === $reservation->user_id || $userId === $bookOwnerId) {
+                    $allowed[] = Reservation::STATUS_CANCELED;
+                }
+            }
+
+            //owner can move next pending to reading
+            if ($userId === $bookOwnerId
+                && $reservation->status === Reservation::STATUS_PENDING
+                && $reservation->id === optional($nextPending)->id
+            ) {
+                $allowed[] = Reservation::STATUS_READING;
+            }
+
+            //owner can mark reading reservation as completed
+            if ($userId === $bookOwnerId && $reservation->status === Reservation::STATUS_READING) {
+                $allowed[] = Reservation::STATUS_COMPLETED;
+            }
+
+            $reservation->allowedStatuses = $allowed;
+            return $reservation;
+        });
+
+        return view('reservations.list', compact('book', 'reservations', 'nextPending'));
     }
+
+
 
     /**
      * Show create reservation form for a book
@@ -54,19 +87,24 @@ class ReservationController extends Controller
                         ->with('success', 'Reservation created!');
     }
 
+
     /**
-     * Delete a reservation (only owner can delete)
+     * Update reservation status
      */
-    public function destroy(string $id)
+    public function updateStatus(Request $request, string $id)
     {
         $reservation = Reservation::findOrFail($id);
+        $allowed = $reservation->getAllowedStatusesForUser(auth()->id());
 
-        if ($reservation->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
+        $status = strtolower($request->status);
+
+        if (!in_array($status, $allowed)) {
+            return back()->with('error', 'You cannot change the reservation to this status.');
         }
 
-        $reservation->delete();
+        $reservation->update(['status' => $status]);
 
-        return back()->with('success', 'Reservation deleted!');
+        return back()->with('success', 'Reservation status updated!');
     }
+
 }
