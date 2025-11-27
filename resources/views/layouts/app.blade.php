@@ -3,30 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlowRead</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+    <title>@yield('title', 'FlowRead - Share books, spark conversations')</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fffaf5;
+        }
+    </style>
+    
+    @yield('extra-head')
 </head>
-<body class="bg-gray-100 font-sans">
-    <nav class="bg-white shadow p-4">
-        <div class="container mx-auto flex justify-between">
-            <a href="/" class="font-bold text-xl">FlowRead</a>
-            <div>
-                @auth
-                    <span class="mr-4">{{ auth()->user()->username }}</span>
-                    <form method="POST" action="{{ route('logout') }}" class="inline">
-                        @csrf
-                        <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" class="mr-4">Login</a>
-                    <a href="{{ route('register') }}" class="bg-green-500 text-white px-3 py-1 rounded">Register</a>
-                @endauth
-            </div>
-        </div>
-    </nav>
+<body class="min-h-screen flex flex-col">
 
-    <main class="container mx-auto mt-10">
+    <!-- Include Topbar -->
+    @include('components.topbar')
+
+    <!-- Main Content -->
+    <main class="flex-1">
         @yield('content')
     </main>
+
+    <!-- Footer -->
+    <div class="border-t border-orange-100 mt-12">
+        <div class="container mx-auto px-4 py-6 max-w-7xl">
+            <p class="text-center text-gray-500 text-sm">FlowRead - Keep the conversation flowing 📖</p>
+        </div>
+    </div>
+
+    @yield('extra-scripts')
 </body>
 </html>

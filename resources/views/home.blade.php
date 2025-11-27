@@ -1,20 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlowRead - Book List</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #fffaf5;
-        }
-    </style>
-</head>
-<body>
+@extends('layouts.app')
+
+@section('title', 'FlowRead - Book List')
+
+@section('content')
 
 <div class="container mx-auto mt-8 px-4 pb-12 max-w-7xl">
     <!-- Minimal Header -->
@@ -116,5 +104,4 @@
     </div>
 </div>
 
-</body>
-</html>
+@endsection
