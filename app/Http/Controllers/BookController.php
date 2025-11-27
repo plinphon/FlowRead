@@ -56,8 +56,14 @@ class BookController extends Controller
             'title'     => 'required|string|max:255',
             'author'    => 'required|string|max:255',
             'isbn'      => 'nullable|string|max:20',
-            'owner_id'  => 'required|exists:users,id'
+            'owner_id'  => 'required|exists:users,id',
+            'image'     => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', 
         ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('books', 'public');
+            $validated['image_path'] = $path;
+        }
 
         Book::create($validated);
 

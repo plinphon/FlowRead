@@ -11,7 +11,10 @@ return new class extends Migration {
             $table->string('title', 255);
             $table->string('author', 255);
             $table->string('isbn', 20)->nullable();
-            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
+            $table->string('image_path')->nullable(); 
+            $table->foreignId('owner_id')
+                  ->constrained('users')
+                  ->onDelete('cascade');
             $table->timestamps();
         });
     }

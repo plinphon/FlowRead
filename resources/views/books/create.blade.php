@@ -22,7 +22,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('books.create') }}" class="space-y-5">
+        <form method="POST" action="{{ route('books.create') }}" class="space-y-5" enctype="multipart/form-data">
             @csrf
 
             <div>
@@ -44,6 +44,12 @@
                 <input type="text" name="isbn" id="isbn" value="{{ old('isbn') }}"
                     class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
                     placeholder="Enter ISBN number">
+            </div>
+
+            <div>
+                <label for="image" class="block text-sm font-semibold text-gray-700 mb-2">Book Image (optional)</label>
+                <input type="file" name="image" id="image" accept="image/*"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition">
             </div>
 
             <input type="hidden" name="owner_id" value="{{ auth()->id() }}">

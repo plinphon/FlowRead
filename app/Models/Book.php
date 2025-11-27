@@ -21,6 +21,7 @@ class Book extends Model
         'author',
         'isbn',
         'owner_id',
+        'image_path'
     ];
 
     public function user()

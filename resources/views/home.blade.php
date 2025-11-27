@@ -26,7 +26,18 @@
                 <h2 class="text-xl font-bold text-gray-900 mb-1 line-clamp-2">{{ $book->title }}</h2>
                 <p class="text-gray-600 text-sm">{{ $book->author }}</p>
             </div>
-
+            <!-- Book Image -->
+            <div class="mb-4 w-full aspect-[2/3]">
+                @if($book->image_path)
+                    <img src="{{ asset('storage/' . $book->image_path) }}" 
+                        alt="{{ $book->title }}" 
+                        class="w-full h-full object-cover rounded-lg">
+                @else
+                    <div class="w-full h-full bg-gray-100 flex items-center justify-center rounded-lg text-gray-400 text-sm">
+                        No Image
+                    </div>
+                @endif
+            </div>
             <!-- Owner -->
             <div class="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100">
                 <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-semibold text-sm">
