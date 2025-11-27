@@ -23,17 +23,21 @@ class ReservationController extends Controller
         $nextPending = $reservations->where('status', Reservation::STATUS_PENDING)->sortBy('position')->first();
         $currentReading = $reservations->where('status', Reservation::STATUS_READING)->first();
 
-        $service = new \App\Services\ReservationService();
+        // Build allowed actions map for frontend
+        $allowedActions = [];
+        foreach ($reservations as $reservation) {
+            $allowedActions[$reservation->id] = \App\Services\ReservationService::getAllowedActions(
+                $reservation,
+                [
+                    'user_id' => $userId,
+                    'owner_id' => $bookOwnerId,
+                    'next_pending' => $nextPending,
+                    'has_reading' => $currentReading !== null,
+                ]
+            );
+        }
 
-        $reservations = $service->attachAllowedActions($reservations, [
-            'user_id'     => $userId,
-            'owner_id'    => $bookOwnerId,
-            'next_pending'=> $nextPending,
-            'has_reading' => $currentReading !== null,
-        ]);
-
-
-        return view('reservations.list', compact('book', 'reservations', 'nextPending'));
+        return view('reservations.list', compact('book', 'reservations', 'nextPending', 'allowedActions'));
     }
 
     /**
@@ -42,6 +46,7 @@ class ReservationController extends Controller
     public function createUI(string $book_id)
     {
         $book = Book::findOrFail($book_id);
+        $this->authorize('create', $book); 
         return view('reservations.create', compact('book'));
     }
 
@@ -50,6 +55,10 @@ class ReservationController extends Controller
      */
     public function store(Request $request, string $book_id)
     {
+        $book = Book::findOrFail($book_id);
+
+       $this->authorize('create', $book); 
+
         $lastReservation = Reservation::where('book_id', $book_id)
             ->orderByDesc('position')
             ->first();
@@ -75,17 +84,16 @@ class ReservationController extends Controller
     public function updateStatus(Request $request, string $id)
     {
         $reservation = Reservation::findOrFail($id);
-        $allowed = $reservation->getAllowedStatusesForUser(auth()->id());
-
         $status = strtolower($request->status);
 
-        if (!in_array($status, $allowed)) {
-            return back()->with('error', 'You cannot change the reservation to this status.');
+        // Check using service, no need for policy duplication
+        if (!ReservationService::canUpdateStatus($reservation, auth()->id(), $status)) {
+            abort(403, 'Not allowed to change this status.');
         }
 
-        $reservation->update(['status' => $status]);
+        $reservation->status = $status;
+        $reservation->save();
 
         return back()->with('success', 'Reservation status updated!');
     }
-
 }

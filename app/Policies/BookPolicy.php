@@ -16,4 +16,10 @@ class BookPolicy
     {
         return $user->id === $book->owner_id;
     }
+    
+    public function create(User $user, Book $book)
+    {
+        return $user->id !== $book->owner_id;
+    }
 }
+

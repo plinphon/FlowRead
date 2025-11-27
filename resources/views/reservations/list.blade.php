@@ -21,10 +21,14 @@
             <h1 class="text-3xl font-bold text-gray-900 mb-1">Reservations</h1>
             <p class="text-gray-600 text-sm">{{ $book->title }}</p>
         </div>
-        <a href="{{ route('reservations.createUI', $book->id) }}"
-           class="bg-orange-500 text-white px-6 py-2.5 rounded-lg hover:bg-orange-600 transition font-medium">
-           + Add Reservation
-        </a>
+
+        <!-- Only show Add Reservation if current user is NOT the owner -->
+        @if(auth()->id() !== $book->owner_id)
+            <a href="{{ route('reservations.createUI', $book->id) }}"
+               class="bg-orange-500 text-white px-6 py-2.5 rounded-lg hover:bg-orange-600 transition font-medium">
+               + Add Reservation
+            </a>
+        @endif
     </div>
 
     <!-- Reservations Table -->
@@ -56,6 +60,9 @@
                                     \App\Models\Reservation::STATUS_PENDING => ($nextPending && $reservation->id === $nextPending->id) ? 'bg-yellow-50' : '',
                                     default => ''
                                 };
+
+                                // Get allowed actions from controller
+                                $allowed = $allowedActions[$reservation->id] ?? [];
                             @endphp
 
                             <tr class="hover:bg-gray-50 transition {{ $rowClass }}">
@@ -77,14 +84,18 @@
                                 </td>
                                 <td class="px-4 py-4 text-sm text-gray-600">{{ $reservation->created_at->format('M d, Y H:i') }}</td>
                                 <td class="px-4 py-4">
-                                    @if(!empty($reservation->allowedStatuses))
+                                    @if(!empty($allowed))
                                         <form action="{{ route('reservations.updateStatus', $reservation->id) }}" method="POST" class="flex gap-2 items-center">
                                             @csrf
                                             @method('PUT')
                                             <select name="status" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
-                                                @foreach($reservation->allowedStatuses as $status)
+                                                @foreach($allowed as $status)
                                                     <option value="{{ $status }}" {{ $reservation->status === $status ? 'selected' : '' }}>
-                                                        {{ ucfirst($status) }}
+                                                        @if($status === \App\Models\Reservation::STATUS_CANCELED) Cancel
+                                                        @elseif($status === \App\Models\Reservation::STATUS_READING) Start Reading
+                                                        @elseif($status === \App\Models\Reservation::STATUS_COMPLETED) Mark Completed
+                                                        @else {{ ucfirst($status) }}
+                                                        @endif
                                                     </option>
                                                 @endforeach
                                             </select>
