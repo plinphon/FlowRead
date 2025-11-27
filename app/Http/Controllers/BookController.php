@@ -57,12 +57,21 @@ class BookController extends Controller
     public function editUI($id)
     {
         $book = Book::findOrFail($id);
+        
+        if ($book->owner_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return view('books.edit', compact('book'));
     }
 
     public function update(Request $request, $id)
     {
         $book = Book::findOrFail($id);
+
+        if ($book->owner_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
 
         $validated = $request->validate([
             'title'     => 'sometimes|string|max:255',
@@ -82,10 +91,13 @@ class BookController extends Controller
     public function destroy($id)
     {
         $book = Book::findOrFail($id);
+
+        if ($book->owner_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $book->delete();
 
-        return response()->json([
-            'message' => 'Book deleted successfully'
-        ]);
+        return redirect()->route('books.list')->with('success', 'Book updated successfully!');
     }
 }

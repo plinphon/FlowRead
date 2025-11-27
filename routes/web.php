@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\ReservationController;
 
 
 Route::middleware('guest')->group(function () {
@@ -30,4 +31,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/books', [BookController::class, 'create'])->name('books.create');
     Route::put('/books/{id}', [BookController::class, 'update'])->name('books.update');
     Route::delete('/books/{id}', [BookController::class, 'destroy'])->name('books.delete');
+
+    //reservation
+    Route::get('/books/{book_id}/reservations', [ReservationController::class, 'list'])
+        ->name('reservations.listUI');
+
+    Route::get('/books/{book_id}/reservations/create', [ReservationController::class, 'createUI'])
+        ->name('reservations.createUI');
+
+    Route::post('/books/{book_id}/reservations', [ReservationController::class, 'store'])
+        ->name('reservations.store');
+
+    Route::delete('/reservations/{id}', [ReservationController::class, 'destroy'])
+        ->name('reservations.delete');
 });
