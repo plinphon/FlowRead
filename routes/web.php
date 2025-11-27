@@ -24,9 +24,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/', [BookController::class, 'indexUI'])->name('books.list');
     Route::get('/books/create', [BookController::class, 'createUI'])->name('books.createUI'); 
+    Route::get('/books/{id}/edit', [BookController::class, 'editUI'])->name('books.editUI');
 
     Route::get('/books/{id}', [BookController::class, 'show']);
     Route::post('/books', [BookController::class, 'create'])->name('books.create');
-    Route::put('/books/{id}', [BookController::class, 'update']);
-    Route::delete('/books/{id}', [BookController::class, 'destroy']);
+    Route::put('/books/{id}', [BookController::class, 'update'])->name('books.update');
+    Route::delete('/books/{id}', [BookController::class, 'destroy'])->name('books.delete');
 });

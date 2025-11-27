@@ -32,6 +32,26 @@
                     <td class="py-3">{{ $book->author }}</td>
                     <td class="py-3">{{ $book->isbn }}</td>
 
+                    <td class="py-3">
+                        <div class="flex gap-2">
+                            <!-- Edit -->
+                            <a href="{{ route('books.editUI', $book->id) }}"
+                               class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
+                                Edit
+                            </a>
+
+                            <!-- Delete -->
+                            <form action="{{ route('books.delete', $book->id) }}" method="POST"
+                                  onsubmit="return confirm('Are you sure?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
                 @endforeach
             </tbody>

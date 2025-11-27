@@ -48,9 +48,18 @@ class BookController extends Controller
         return redirect()->route('books.list')->with('success', 'Book created successfully!');
     }
 
+    
+
     /**
      * UPDATE book
      */
+
+    public function editUI($id)
+    {
+        $book = Book::findOrFail($id);
+        return view('books.edit', compact('book'));
+    }
+
     public function update(Request $request, $id)
     {
         $book = Book::findOrFail($id);
@@ -64,10 +73,7 @@ class BookController extends Controller
 
         $book->update($validated);
 
-        return response()->json([
-            'message' => 'Book updated successfully',
-            'data' => $book
-        ]);
+        return redirect()->route('books.list')->with('success', 'Book updated successfully!');
     }
 
     /**
